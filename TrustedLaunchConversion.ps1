@@ -32,7 +32,7 @@ ForEach ($vmName in $vmNames) {
             catch {
                 Write-Output "The VM $($vm.Name) shutdown: unsuccesful; please reattempt shutdown before TrustedLaunch Conversion."
             }
-            }
+        }
         try {
             write-output "Perform TrustedLaunch Conversion on the VM $($vm.Name)."
             Get-AzVM -ResourceGroupName $resourceGroup -Name $vm.Name | Update-AzVM -SecurityType TrustedLaunch -EnableSecureBoot $true -EnableVtpm $true

@@ -1,0 +1,160 @@
+{
+  "mode": "All",
+  "policyRule": {
+    "if": {
+      "anyOf": [
+        {
+          "field": "type",
+          "equals": "Microsoft.Compute/virtualMachines"
+        },
+        {
+          "field": "type",
+          "equals": "Microsoft.Compute/disks"
+        }
+      ]
+    },
+    "then": {
+      "effect": "deployIfNotExists",
+      "details": {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "existenceCondition": {
+          "allOf": [
+            {
+              "field": "Microsoft.Compute/virtualMachines/extensions/type",
+              "equals": "AzureDiskEncryption"
+            },
+            {
+              "field": "Microsoft.Compute/virtualMachines/extensions/publisher",
+              "equals": "Microsoft.Azure.Security"
+            }
+          ]
+        },
+        "roleDefinitionIds": [
+          "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+          "/providers/Microsoft.Authorization/roleDefinitions/21090545-7ca7-4776-b22c-e363652d74d2"
+        ],
+        "deployment": {
+          "properties": {
+            "mode": "Incremental",
+            "parameters": {
+              "vmName": {
+                "value": "[field('name')]"
+              },
+              "keyVaultName": {
+                "Value": "cmagvadteaded-kv",
+                "metadata": {
+                  "description": "Name of the KeyVault to place the volume encryption key"
+                }
+              },
+              "keyVaultResourceGroup": {
+                "Value": "cmagvadteadminmgmt-rg",
+                "metadata": {
+                  "description": "Resource group of the KeyVault"
+                }
+              },
+              "keyEncryptionKeyURL": {
+                "Value": "https://cmagvadteaded-kv.vault.usgovcloudapi.net/keys/DTE-KEK01/a7028c15bc874209a42d3d804e5a8b1a",
+                "metadata": {
+                  "description": "URL of the KeyEncryptionKey used to encrypt the volume encryption key"
+                }
+              },
+              "volumeType": {
+                "Value": "All",
+                "metadata": {
+                  "description": "Type of the volume OS or Data to perform encryption operation"
+                }
+              },
+              "forceUpdateTag": {
+                "Value": "1.0",
+                "metadata": {
+                  "description": "Pass in an unique value like a GUID everytime the operation needs to be force run"
+                }
+              },
+              "resizeOSDisk": {
+                "Value": false,
+                "metadata": {
+                  "description": "Should the OS partition be resized to occupy full OS VHD before splitting system volume"
+                }
+              },
+              "location": {
+                "Value": "[resourceGroup().location]",
+                "metadata": {
+                  "description": "Location for all resources."
+                }
+              }
+            },
+            "template": {
+              "$schema": "http://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+              "contentVersion": "1.0.0.0",
+              "parameters": {
+                "vmName": {
+                  "type": "string"
+                },
+                "keyVaultName": {
+                  "type": "string"
+                },
+                "keyVaultResourceGroup": {
+                  "type": "string"
+                },
+                "keyEncryptionKeyURL": {
+                  "type": "string"
+                },
+                "volumeType": {
+                  "type": "string"
+                },
+                "forceUpdateTag": {
+                  "type": "string"
+                },
+                "resizeOSDisk": {
+                  "type": "bool"
+                },
+                "location": {
+                  "type": "string"
+                }
+              },
+              "resources": [
+                {
+                  "name": "[concat(parameters('vmName'),'/', variables('extensionName'))]",
+                  "type": "Microsoft.Compute/virtualMachines/extensions",
+                  "location": "[parameters('location')]",
+                  "apiVersion": "2023-07-01",
+                  "properties": {
+                    "publisher": "Microsoft.Azure.Security",
+                    "type": "[variables('extensionName')]",
+                    "typeHandlerVersion": "[variables('extensionVersion')]",
+                    "autoUpgradeMinorVersion": true,
+                    "forceUpdateTag": "[parameters('forceUpdateTag')]",
+                    "settings": {
+                      "EncryptionOperation": "[variables('encryptionOperation')]",
+                      "KeyVaultURL": "[reference(variables('keyVaultResourceId'), '2019-09-01').vaultUri]",
+                      "KeyVaultResourceId": "[variables('keyVaultResourceID')]",
+                      "KeyEncryptionKeyURL": "[parameters('keyEncryptionKeyURL')]",
+                      "KekVaultResourceId": "[variables('keyVaultResourceID')]",
+                      "KeyEncryptionAlgorithm": "[variables('keyEncryptionAlgorithm')]",
+                      "VolumeType": "[parameters('volumeType')]",
+                      "ResizeOSDisk": "[parameters('resizeOSDisk')]"
+                    }
+                  }
+                }
+              ],
+              "outputs": {
+                "policy": {
+                  "type": "string",
+                  "value": "[concat('Enabled Azure Disk Encryption for Windows VM', ': ', parameters('vmName'))]"
+                }
+              },
+              "variables": {
+                "extensionName": "AzureDiskEncryption",
+                "extensionVersion": "2.2",
+                "encryptionOperation": "EnableEncryption",
+                "keyEncryptionAlgorithm": "RSA-OAEP",
+                "keyVaultResourceID": "[resourceId(parameters('keyVaultResourceGroup'), 'Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters": {}
+}

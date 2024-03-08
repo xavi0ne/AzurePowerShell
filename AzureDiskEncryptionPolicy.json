@@ -41,19 +41,19 @@
                 "value": "[field('name')]"
               },
               "keyVaultName": {
-                "Value": "cmagvadteaded-kv",
+                "Value": "<name>",
                 "metadata": {
                   "description": "Name of the KeyVault to place the volume encryption key"
                 }
               },
               "keyVaultResourceGroup": {
-                "Value": "cmagvadteadminmgmt-rg",
+                "Value": "<name>",
                 "metadata": {
                   "description": "Resource group of the KeyVault"
                 }
               },
               "keyEncryptionKeyURL": {
-                "Value": "https://cmagvadteaded-kv.vault.usgovcloudapi.net/keys/DTE-KEK01/a7028c15bc874209a42d3d804e5a8b1a",
+                "Value": "<kvURL>",
                 "metadata": {
                   "description": "URL of the KeyEncryptionKey used to encrypt the volume encryption key"
                 }
